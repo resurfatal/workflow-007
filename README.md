@@ -4,20 +4,6 @@ Tanisha's copy of the method in Anne Deslattes Mays' repository (NIH-NLM/endotyp
 
 ## Start here
 
-**Status (2026-11-11).** Notebooks 01 to 08 have been written. 01 to 07 have been run on Lifebit; 08 ran and its results are summarised below. 09 (WGCNA) ran and its results are summarised below; 10 (second SLE study) is written and has not been run yet.
-
-**What is different from Anne's repository and from the files first uploaded:**
-
-- **New: `04_batch_all_sources`.** Puts the four facilities and the JDM lab on one scale, says which sources can and cannot be corrected, and checks that the correction did not erase the interferon signal.
-- **New: `10_sle_gse135779_vs_jdm`.** The second SLE study (GSE135779), compared with every disease, JDM and the first SLE study. Before running it, put the by-hand supplement `41590_2020_743_MOESM3_ESM.xlsx` in `/home/jovyan/session_data/endotype-transcripts-007/data/GSE135779/` (`mkdir -p` that folder first).
-- **New: `09_wgcna_modules`.** Gene modules per study, preservation between RGM and the JDM lab, a module-overlap table, and one plain-English verdict per module.
-- **New: `08_sle_gse65391_vs_jdm`.** SLE (public array GSE65391) against its own healthy children, compared with every disease and JDM.
-- **Edited: `07`.** The pooled ComBat view moved into 04. The JDM key sheet is no longer needed (the `Cohort` row of `4b_rpkm.csv` says JDM or healthy). Added section 1b (comparison without the 28 interferon genes). The heatmap draws one colour strip (this R's `heatmap()` takes only one).
-- **Edited: `06`.** Same one-colour-strip heatmap fix.
-- **Edited: `02`.** The Checkpoint 10 histogram no longer crashes (all TPM column sums are exactly 1,000,000).
-- **Edited: `04`.** Reads JDM or healthy from `4b_rpkm.csv` itself; no key sheet.
-- Everything else is as uploaded (`01`, `03`, `05`, the public-data notebooks, `paths.R`, the six gene lists, the environment files). The `01`/`02`/`03`/`04` here are the new numbers; see "Old names" at the end for the earlier ones.
-
 ## Setup: the terminal commands, in order
 
 Run these in a Lifebit **terminal** (not a notebook cell). Steps 1 to 3 are done once per Lifebit session; the environment from step 2 stays in your home folder.
