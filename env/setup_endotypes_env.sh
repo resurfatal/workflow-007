@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run in a Lifebit TERMINAL (not a notebook cell):
-#     bash /home/jovyan/session_data/endotype-transcripts-007/env/setup_endotypes_env.sh
+#     bash /home/jovyan/session_data/workflow-007/env/setup_endotypes_env.sh
 # Put endotypes.yml in the same folder as this script first.
 set -e
 HERE="$(cd "$(dirname "$0")" && pwd)"

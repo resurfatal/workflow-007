@@ -1,6 +1,6 @@
 # What each notebook writes, and what each file is for
 
-Everything below is written under `/home/jovyan/session_data/endotype-transcripts-007/results/rnaseq_out_v2/` (`OUT` below). All files are CSV (plus two `.md` logs and one `.csv.gz`). Plots are shown inside the notebook and are not saved.
+Everything below is written under `/home/jovyan/session_data/workflow-007/results/rnaseq_out_v2/` (`OUT` below). All files are CSV (plus two `.md` logs and one `.csv.gz`). Plots are shown inside the notebook and are not saved.
 
 **Privacy note.** Files marked ⚠ contain sample names, patient initials or enrollment IDs. Keep them on Lifebit; do not paste them into chat or email. The notebooks themselves print only counts and group names.
 

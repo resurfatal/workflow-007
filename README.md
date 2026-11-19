@@ -1,32 +1,68 @@
-# endotype-transcripts-007
+# workflow-007
 
 Tanisha's copy of the method in Anne Deslattes Mays' repository (NIH-NLM/endotypes-transcriptomics), applied to the internal RNA-seq data (RGM: four sequencing facilities) and the JDM-lab data, run on Lifebit.
 
 ## Start here
 
+**Status (2026-11-11).** Notebooks 01 to 08 have been written. 01 to 07 have been run on Lifebit; 08 ran and its results are summarised below. 09 (WGCNA) ran and its results are summarised below; 10 (second SLE study) is written and has not been run yet.
+
+**What is different from Anne's repository and from the files first uploaded:**
+
+- **New: `04_batch_all_sources`.** Puts the four facilities and the JDM lab on one scale, says which sources can and cannot be corrected, and checks that the correction did not erase the interferon signal.
+- **New: `10_sle_gse135779_vs_jdm`.** The second SLE study (GSE135779), compared with every disease, JDM and the first SLE study. Before running it, put the by-hand supplement `41590_2020_743_MOESM3_ESM.xlsx` in `/home/jovyan/session_data/workflow-007/data/GSE135779/` (`mkdir -p` that folder first).
+- **New: `09_wgcna_modules`.** Gene modules per study, preservation between RGM and the JDM lab, a module-overlap table, and one plain-English verdict per module.
+- **New: `08_sle_gse65391_vs_jdm`.** SLE (public array GSE65391) against its own healthy children, compared with every disease and JDM.
+- **Edited: `07`.** The pooled ComBat view moved into 04. The JDM key sheet is no longer needed (the `Cohort` row of `4b_rpkm.csv` says JDM or healthy). Added section 1b (comparison without the 28 interferon genes). The heatmap draws one colour strip (this R's `heatmap()` takes only one).
+- **Edited: `06`.** Same one-colour-strip heatmap fix.
+- **Edited: `02`.** The Checkpoint 10 histogram no longer crashes (all TPM column sums are exactly 1,000,000).
+- **Edited: `04`.** Reads JDM or healthy from `4b_rpkm.csv` itself; no key sheet.
+- Everything else is as uploaded (`01`, `03`, `05`, the public-data notebooks, `paths.R`, the six gene lists, the environment files). The `01`/`02`/`03`/`04` here are the new numbers; see "Old names" at the end for the earlier ones.
+
 ## Setup: the terminal commands, in order
 
 Run these in a Lifebit **terminal** (not a notebook cell). Steps 1 to 3 are done once per Lifebit session; the environment from step 2 stays in your home folder.
 
-**1. Put the folder in place.** It must be at exactly `/home/jovyan/session_data/endotype-transcripts-007`. Every notebook reads and writes under that folder (`genes/`, `src/paths.R`, `data/` for public downloads, `results/` for outputs), so there is no copy step.
+**1. Put the folder in place.** It must be at exactly `/home/jovyan/session_data/workflow-007`. Every notebook reads and writes under that folder (`genes/`, `src/paths.R`, `data/` for public downloads, `results/` for outputs). Lifebit cannot see your own computer, so the folder has to arrive from GitHub or by upload.
+
+*First time on this Lifebit session (folder does not exist yet):* clone it. Replace `REPO_URL` with your repository's address (GitHub, green Code button, HTTPS). A private repository asks for your GitHub username and a personal access token as the password; make the token under GitHub Settings > Developer settings > Personal access tokens, with the `repo` scope, and never paste it into a notebook or file.
 
 ```bash
 cd ~/session_data
-ls endotype-transcripts-007            # should list: README.md OUTPUTS.md ipynb src genes env
+git clone REPO_URL workflow-007
 ```
+
+If the repository holds this project in a subfolder (for example `007-Workflow/`), move its contents up so that `ipynb`, `src`, `genes` and `env` sit directly inside `workflow-007`.
+
+*Every later time (folder already exists):* pull the latest.
+
+```bash
+cd ~/session_data/workflow-007
+git pull
+```
+
+*No GitHub:* upload the folder through the Jupyter file browser (Upload button) into `session_data`, then rename it to `workflow-007`.
+
+Then check it is in place:
+
+```bash
+cd ~/session_data
+ls workflow-007            # should list: README.md OUTPUTS.md ipynb src genes env
+```
+
+**Before you ever commit or push from Lifebit:** the notebooks print patient IDs and initials into their saved outputs, and `results/` and `data/` hold patient-level files. Run `jupyter nbconvert --clear-output --inplace $(find . -name "*.ipynb")` and make sure `.gitignore` lists `results/`, `data/`, `*.csv`, `*.csv.gz`, `*.xlsx` and `*.parquet`.
 
 If you already ran notebooks into the old `Attempt0` folder, move that work across once so nothing re-runs or is orphaned:
 
 ```bash
 cd ~/session_data
-[ -d Attempt0/endotype_results ] && mv Attempt0/endotype_results endotype-transcripts-007/results
-[ -d Attempt0/data ] && mv Attempt0/data endotype-transcripts-007/data
+[ -d Attempt0/endotype_results ] && mv Attempt0/endotype_results workflow-007/results
+[ -d Attempt0/data ] && mv Attempt0/data workflow-007/data
 ```
 
 **2. Build the environment** (R with limma, edgeR, sva, plus Python for notebooks 01 and 02). Takes several minutes; leave the terminal open until it prints "Done".
 
 ```bash
-bash /home/jovyan/session_data/endotype-transcripts-007/env/setup_endotypes_env.sh
+bash /home/jovyan/session_data/workflow-007/env/setup_endotypes_env.sh
 ```
 
 Every package line near the end should say `OK`. The environment is created at `/home/jovyan/envs/endotypes`. Do not use `conda install -p /home/jovyan/envs/wgcna ...`: that environment does not exist in the current Lifebit session.
@@ -46,7 +82,8 @@ You need the Goldbach-Mansky workbook, `HC_blood_all_samples.xlsx`, `MetadataPat
 | `rnaseq/nih` 01, 02 | **Python (endotypes)** |
 | `rnaseq/nih` 03 to 10 | **R (endotypes)** (the notebooks say "R (WGCNA)" in their text; ignore that) |
 | `rnaseq/public` (all) | **R (endotypes)** |
-| `nanostring` 01, 02 | **Python (endotypes)** |
+| `nanostring` 01, 04, 05 | **Python (endotypes)** |
+| `nanostring` 02, 03 | **R (endotypes)** (both open with `library(readxl)`) |
 
 Check R once, in a cell on the R kernel. All three must say `TRUE`:
 
@@ -60,9 +97,9 @@ sapply(c("limma", "edgeR", "sva"), requireNamespace, quietly = TRUE)
 
 ```bash
 # what has been written so far
-ls /home/jovyan/session_data/endotype-transcripts-007/results/rnaseq_out_v2/
+ls /home/jovyan/session_data/workflow-007/results/rnaseq_out_v2/
 # did 04 finish? (should list 9 files)
-ls /home/jovyan/session_data/endotype-transcripts-007/results/rnaseq_out_v2/all_sources_correction/
+ls /home/jovyan/session_data/workflow-007/results/rnaseq_out_v2/all_sources_correction/
 # which kernels exist
 jupyter kernelspec list
 ```
@@ -90,9 +127,30 @@ Every file each notebook writes, and what it is for, is listed in **`OUTPUTS.md`
 
 The numbers restart in each folder, so "notebook 05" in any text means `nih/05_differential_expression`. Notebooks in the other two folders are always named with their folder or study.
 
-The two NanoString notebooks (`ipynb/nanostring/`: `01_rcc_parse_qc`, then `02_append_jdm`, which needs 01's `nanostring_master.csv`) and the notebooks in `ipynb/rnaseq/public/` are independent of this chain, except that 08 needs the three GSE65391 ones. Notebook 10 downloads and builds its own GSE135779 data, so the four `GSE135779_*` notebooks are Anne's separate version of the same steps and are not needed for it.
+The NanoString notebooks (`ipynb/nanostring/`, section below) and the notebooks in `ipynb/rnaseq/public/` are independent of this chain, except that 08 needs the three GSE65391 ones. Notebook 10 downloads and builds its own GSE135779 data, so the four `GSE135779_*` notebooks are Anne's separate version of the same steps and are not needed for it.
 
-## How to read 04 in three questions
+## NanoString (a separate chain, `ipynb/nanostring/`)
+
+**What it is for.** A second, independent check on the interferon signal using the NanoString panel (28 interferon genes + 4 housekeeping genes, Kim et al. 2018), run in parallel with the RNA-seq chain above and not depending on it. The score used throughout is the published **geometric-mean score**: scale each sample so its four housekeeping genes (ALAS1, HPRT1, TBP, TUBB) have a geometric mean of 1000, take the geometric mean of the 28 genes, divide by 10. The published *standardized* score (STD) cannot be reproduced because the per-gene healthy-control mean and SD were never published, so the workbook's STD column is used as given.
+
+**Two datasets, never pooled.** *RGM*: raw `.RCC` files (several diseases, healthy controls). *JDM*: the workbook `JDM IFN scores OADR.xlsx` plus the clinical database CSV. RGM and JDM raw values are not pooled in any statistical model, because dataset and disease overlap.
+
+| step | notebook | kernel | what it does | status |
+|---|---|---|---|---|
+| 01 | `01_rcc_parse_qc` | Python | reads every RCC file, works out whose sample it is, attaches demographics, run QC (binding density, field of view, housekeeping level), standards and per-cartridge calibration factors. Writes `nanostring_master.csv` (raw counts, one row per file) | run |
+| 02 | `02_append_jdm` | R | stacks the RGM master and the JDM workbook into one long table with a `dataset` and `version` column, then checks whether the two sets are comparable. Bookkeeping only; scores nothing | run |
+| 03 | `03_jdm_ifn_vs_clinical` | R | JDM only: joins the raw sheet to the clinical database on `nano ID`, computes the geomean score, correlates it with activity, labs and antibody group | written, not yet run on Lifebit |
+| 04 | `04_ifn_score_robustness` | Python | optional one-off check: does the score change with housekeeping choice, floor, background or score formula? On a test dataset it did not (rho at least 0.99), so expect "OK" | written; tested on stand-in data only |
+| 05 | `05_rnaseq_sample_selector` | Python | JDM: finds each sample's clinical visit closest in date, reports the gap, shows how the score-activity link weakens with gap size, and ranks samples (high / middle / low) for choosing RNA-seq samples | written; tested on stand-in data only |
+| - | `deidentified_summary.py` | Python | prints a text description of the three input files (column names, fill rates, ID patterns, year ranges, small counts hidden) that is safe to paste into a chat. Writes nothing | written; tested on stand-in data only |
+
+Run 01, then 02. 03, 04 and 05 each read the files directly and can be run in any order after 01.
+
+**Known gap, next to build.** The pipeline never does nSolver's first normalization step, positive-control scaling (Kim 2018 applies it before housekeeping scaling). 01 outputs raw counts and 03 to 05 use housekeeping scaling only. Without nSolver, the plan is a notebook between 01 and 02 that rebuilds the nSolver steps in the order RCC files, QC, positive-control scaling, housekeeping scaling, 28-gene score, using NACHO and NanoTube (and nanoR, nanostringr, the nf-core/nanostring pipeline) as reference implementations, then checks the result against the workbook's own "Geomean 28" column (JDM) and against NACHO/NanoTube output (RGM). It also has to be checked against 01's per-cartridge calibration so the two corrections do not double up. Not written yet.
+
+**Where the RNA-seq chain meets this one.** A colleague's RNA-seq endotype labels are planned to be joined to NanoString on normalized patient ID (and, for JDM, the database's `RNA_Seq ID`) to show the panel by endotype. That notebook waits for the endotype file.
+
+## How to read RNA-seq notebook 04 (nih/04_batch_all_sources) in three questions
 
 1. **Part 4: which sources can be corrected?** A source can be corrected when it holds healthy controls, or a disease, that another source also holds. That shared group is the ruler its shift is measured from. A source holding one diagnosis found nowhere else cannot be corrected by any method, because "this source" and "this disease" are the same thing. Such sources are left out of the combined table, listed with the reason, and never silently included.
 2. **Part 6a: did the source pattern fall?** The share of the main patterns explained by *source* should drop from stage 1 to stage 3, while the share explained by *diagnosis* stays.
@@ -136,7 +194,7 @@ These are readings of the printed output, from notebooks that ran on Lifebit. Th
 ```
 README.md, OUTPUTS.md        this file; what every notebook writes
 ipynb/
-  nanostring/                01_rcc_parse_qc, 02_append_jdm
+  nanostring/                01_rcc_parse_qc, 02_append_jdm, 03_jdm_ifn_vs_clinical, 04_ifn_score_robustness, 05_rnaseq_sample_selector, deidentified_summary.py
   rnaseq/
     nih/                     01 to 10: the run order above (your RGM + JDM-lab data, then SLE and WGCNA)
     public/                  public datasets, run on their own; names are <GSE>_<step>_<what>

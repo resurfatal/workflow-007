@@ -1,8 +1,8 @@
 # paths.R : where files live, on Lifebit.
-# The whole folder sits at /home/jovyan/session_data/endotype-transcripts-007 and everything is relative to it.
-# Public-data notebooks load it with:  source("/home/jovyan/session_data/endotype-transcripts-007/src/paths.R")
+# The whole folder sits at /home/jovyan/session_data/workflow-007 and everything is relative to it.
+# Public-data notebooks load it with:  source("/home/jovyan/session_data/workflow-007/src/paths.R")
 
-ROOT <- "/home/jovyan/session_data/endotype-transcripts-007"   # the repo folder itself
+ROOT <- "/home/jovyan/session_data/workflow-007"   # the repo folder itself
 DATA <- file.path(ROOT, "data")                  # downloaded public files:  data/<study>/<file>
 NCBI <- file.path(DATA, "ncbi")                  # NCBI gene table shared by the studies
 GENES <- file.path(ROOT, "genes")                # gene-list files (one symbol per line)
