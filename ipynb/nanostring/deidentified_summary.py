@@ -76,15 +76,19 @@ if os.path.exists(MASTER_CSV):
     m = pd.read_csv(MASTER_CSV, low_memory=False)
     print(f"rows {len(m)}, columns {m.shape[1]}")
     print("\ncolumns (name, how many rows filled, type):"); collist(m)
-    for c in ["record_type", "diagnosis1", "specimen_type", "qc_pass", "is_non_blood", "needs_review", "study_status"]:
+    for c in ["record_type", "diagnosis1", "specimen_type", "qc_pass", "is_non_blood", "needs_review", "study_status", "gene_rlf", "n_probes", "n_housekeeping"]:
         if c in m: print(f"\n{c}: {counts(m[c])}")
     for c in ["sample_date", "run_date"]:
         if c in m: print(f"\n{c} years: {years(m[c])}")
-    for c in ["patient_id", "sample_initials", "cartridge", "raw_filename", "gene_rlf"]:
+    for c in ["patient_id", "sample_initials", "cartridge", "raw_filename"]:
         if c in m: print(f"\n{c} pattern (digits=9, letters=A): {pat_summary(m[c])}")
     if "patient_id" in m:
         pid = m["patient_id"].replace("", np.nan).dropna()
         print(f"\npatients: {pid.nunique()} distinct; files per patient: " + counts(pid.value_counts().clip(upper=5).astype(int).astype(str) + (" files"), 6))
+    if "gene_rlf" in m and "record_type" in m:
+        print("\ncodeset (gene_rlf) by record_type  [do RGM files mix codesets? the SOP batch-calibrates Raphaela II vs III]:")
+        ct = pd.crosstab(m["gene_rlf"].fillna("(blank)"), m["record_type"])
+        print(ct.map(lambda n: cell(int(n))).to_string())
     if "cartridge" in m and "record_type" in m:
         cp = m.groupby("cartridge")["record_type"].agg(lambda s: ", ".join(sorted(set(s.astype(str)))))
         n_c = len(cp); both = int(cp.str.contains("healthy_control") .sum()); stdc = int(cp.str.contains("standard").sum())
